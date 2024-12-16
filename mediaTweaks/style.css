@@ -1,0 +1,13 @@
+.mediaTweaks-metadata {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  padding: 8px;
+  background: linear-gradient(to bottom, hsl(var(--black-500-hsl) / 0.6), transparent);
+  width: 100%;
+  pointer-events: none;
+}
+
+[class^="inlineMediaEmbed_"] {
+  max-width: max-content !important;
+}

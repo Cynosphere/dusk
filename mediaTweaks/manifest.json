@@ -1,0 +1,64 @@
+{
+  "$schema": "https://moonlight-mod.github.io/manifest.schema.json",
+  "id": "mediaTweaks",
+  "version": "1.0.5",
+  "meta": {
+    "name": "Media Tweaks",
+    "tagline": "Various tweaks to images and videos. Every feature togglable.",
+    "authors": [
+      "Cynosphere"
+    ],
+    "tags": [
+      "qol",
+      "chat"
+    ],
+    "source": "https://github.com/Cynosphere/moonlight-extensions"
+  },
+  "dependencies": [
+    "spacepack"
+  ],
+  "settings": {
+    "imageUrls": {
+      "displayName": "Image URLs",
+      "type": "boolean",
+      "default": true
+    },
+    "noGifAutosend": {
+      "displayName": "No GIF Autosend",
+      "description": "Puts the URL in the textbox when clicking a GIF instead of automatically sending it",
+      "type": "boolean",
+      "default": true
+    },
+    "videoMetadata": {
+      "displayName": "Video Metadata",
+      "description": "Restores filename and filesize on video attachments",
+      "type": "boolean",
+      "default": true
+    },
+    "inlineMosaicPlayback": {
+      "displayName": "Inline Mosaic Playback",
+      "description": "Allows videos in a media mosaic to be played inline instead of playing in a modal",
+      "type": "boolean",
+      "default": true
+    },
+    "enlargeVideoButton": {
+      "displayName": "Enlarge Video Button",
+      "description": "Adds a button to open videos in the image preview modal",
+      "type": "boolean",
+      "default": true
+    },
+    "noWebp": {
+      "displayName": "No WebP",
+      "description": "Disables fetching WebP versions of images for better clarity",
+      "type": "boolean",
+      "default": true
+    },
+    "noThumbnailSize": {
+      "displayName": "No Thumbnail Size",
+      "description": "Removes size parameters from thumbnails. **This will cause your client to freeze in channels with lots of high resolution images in them**",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "apiLevel": 2
+}
