@@ -1,7 +1,7 @@
 import {findByPropsLazy, findByCodeLazy, findModuleId, wreq, proxyLazyWebpack} from "@webpack";
 
-import {Clickable, Tooltip, Icons} from "@webpack/common";
-const MaximizeIcon = proxyLazyWebpack(() => Icons.MaximizeIcon);
+import {Clickable, Tooltip} from "@webpack/common";
+const MaximizeIcon = findByCodeLazy("M14 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0V5.41l-5.3");
 
 const HoverButtonClasses = findByPropsLazy("hoverButton");
 
@@ -25,8 +25,8 @@ type MimeType = {
   compressible?: boolean;
 };
 
-const LazyMediaModal = findByCodeLazy(/let{location:.,contextKey:/, "openModalLazy");
-const MediaModalClasses = proxyLazyWebpack(() => wreq(findModuleId(/\.exports={modal:"modal_[a-z0-9]+"}/)));
+const LazyMediaModal = findByCodeLazy(/let{location:\i,contextKey:/, ".MEDIA_VIEWER");
+const MediaModalClasses = proxyLazyWebpack(() => wreq(findModuleId(/{modal:"modal_[a-z0-9]+"}/)));
 
 const MimeTypes = proxyLazyWebpack(() =>
   Object.entries(wreq(findModuleId(`JSON.parse('{"application/1d-interleaved-parityfec":`))),

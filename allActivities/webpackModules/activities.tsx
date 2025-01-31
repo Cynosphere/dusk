@@ -3,7 +3,7 @@ import {useMemo} from "@webpack/common";
 
 const UserProfileActivityCardWrapper = findByCodeLazy('location:"' + 'UserProfileActivityCardWrapper"');
 const UserProfileStreamActivityCard = findByCodeLazy('surface:"' + 'user-profile-stream-activity-card",');
-const useUserProfileActivity = findByCodeLazy('("use-user-' + 'profile-activity")');
+const useUserProfileActivity = findByCodeLazy('"use-user-' + 'profile-activity"');
 const useUserActivityFeedRecent = findByCodeLazy('"application_id"in', ".extra.application_id", ".GAME_PROFILE_FEED");
 const ActivityFeed48h = findByCodeLazy(".Millis.HOUR<48");
 const UserProfileRecentActivityCard = findByCodeLazy("{recentActivityEnabled:", ".bot?(0,");

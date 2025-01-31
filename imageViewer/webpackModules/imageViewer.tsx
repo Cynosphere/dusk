@@ -1,45 +1,31 @@
-import {findByCodeLazy, waitFor} from "@webpack";
+import {findByCodeLazy, filters, mapMangledModuleLazy} from "@webpack";
 
-import {Clipboard, React} from "@webpack/common";
-
-// imagine not exposing the components module
-let Image,
-  Text,
-  TextInput,
-  XLargeIcon,
-  CopyIcon,
-  LinkIcon,
-  PlusLargeIcon,
-  MinusIcon,
-  FullscreenEnterIcon,
-  ArrowAngleLeftUpIcon,
-  ArrowAngleRightUpIcon,
-  WindowLaunchIcon,
-  closeModal,
-  useModalsStore;
-waitFor(["FormItem", "Button"], (exports) => {
-  ({
-    Image,
-    Text,
-    TextInput,
-    XLargeIcon,
-    CopyIcon,
-    LinkIcon,
-    PlusLargeIcon,
-    MinusIcon,
-    FullscreenEnterIcon,
-    ArrowAngleLeftUpIcon,
-    ArrowAngleRightUpIcon,
-    WindowLaunchIcon,
-    closeModal,
-    useModalsStore,
-  } = exports);
+import {Clipboard, React, Text, TextInput} from "@webpack/common";
+const {Image} = mapMangledModuleLazy(",Text:()=>", {
+  Image: filters.componentByCode(",dataSafeSrc:"),
 });
+
+const XLargeIcon = findByCodeLazy("M19.3 20.7a1 1 0 0 0 1.4-1.4L13.42");
+const CopyIcon = findByCodeLazy("M3 16a1 1 0 0 1-1-1v-5a8 8 0 0 1 8-8h5a1");
+const LinkIcon = findByCodeLazy("M16.32 14.72a1 1 0 0 1 0-1.41l2.51-2.51a3.98");
+const PlusLargeIcon = findByCodeLazy("M13 3a1 1 0 1 0-2 0v8H3a1 1 0 1 0 0 2h8v8a1");
+const MinusIcon = findByCodeLazy("M22 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h18a1 1 0 0 1 1 1Z");
+const FullscreenEnterIcon = findByCodeLazy(
+  "2h3ZM20 18a2 2 0 0 1-2 2h-3a1 1 0 1 0 0 2h3a4 4 0 0 0 4-4v-3a1 1 0 1 0-2 0v3Z",
+);
+const ArrowAngleLeftUpIcon = findByCodeLazy("M2.3 7.3a1 1 0 0 0 0 1.4l5 5a1 1 0 0 0 1.4-1.4L5.42 9H11a7");
+const ArrowAngleRightUpIcon = findByCodeLazy("M21.7 7.3a1 1 0 0 1 0 1.4l-5 5a1 1 0 0 1-1.4-1.4L18.58 9H13a7");
+const WindowLaunchIcon = findByCodeLazy("1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6a1");
 
 const HeaderBar = findByCodeLazy(".HEADER_BAR),");
 const NativeUtils = findByCodeLazy("Data fetch" + " unsuccessful");
 const RawVideo = findByCodeLazy('MOSAIC?{width:"100%",height:"100%",' + 'maxHeight:"inherit",objectFit:"contain"}');
 const Video = findByCodeLazy(".VIDEO,", ",onVolume" + "Change:");
+
+const {closeModal, useModalsStore} = mapMangledModuleLazy("onCloseCallback()", {
+  closeModal: filters.byCode("onCloseCallback()"),
+  useModalsStore: filters.byCode(/^.=>.\(.,.\)$/),
+});
 
 type SourceMetadata = {
   identifier: {
@@ -66,16 +52,22 @@ type Props = {
   sourceMetadata: SourceMetadata;
 };
 
-function scale(width: number, height: number) {
+const STEP_MAX = 50;
+const ZOOM_SCALE = 1 / (4 * STEP_MAX);
+const MAX_ZOOM = Math.log2(32) / ZOOM_SCALE;
+
+function calculateInitialZoom(width: number, height: number) {
   const padding = 128;
   const maxWidth = window.innerWidth - padding;
   const maxHeight = window.innerHeight - padding;
 
-  if (width <= maxWidth && height <= maxHeight) return 1;
+  if (width <= maxWidth && height <= maxHeight) return 0;
 
   const widthScale = maxWidth / width;
   const heightScale = maxHeight / height;
-  return Math.min(widthScale, heightScale);
+
+  const zoom = Math.log2(Math.min(widthScale, heightScale)) / ZOOM_SCALE;
+  return Math.floor(zoom / STEP_MAX) * STEP_MAX;
 }
 
 function close() {
@@ -100,28 +92,27 @@ export default function ImageViewer({
   animated,
   sourceMetadata,
 }: Props) {
-  const calculatedScale = React.useMemo(() => scale(width, height), [width, height]);
+  const initialZoom = calculateInitialZoom(width, height);
+  const minZoom = initialZoom - MAX_ZOOM;
 
   const [x, setX] = React.useState(0);
   const [y, setY] = React.useState(0);
   const [rotate, setRotate] = React.useState(0);
-  const [zoom, setZoom] = React.useState(calculatedScale);
+  const [zoom, setZoom] = React.useState(initialZoom);
+  const scale = 2 ** (zoom * ZOOM_SCALE);
   const [dragging, setDragging] = React.useState(false);
   const [editingZoom, setEditingZoom] = React.useState(false);
   const [zoomEdit, setZoomEdit] = React.useState(100);
   const wrapperRef = React.createRef<HTMLDivElement>();
 
-  const src = React.useMemo(() => {
-    if (animated) {
-      return (
-        sourceMetadata.message.embeds?.[sourceMetadata.identifier.embedIndex ?? -1]?.video?.proxyURL ?? proxyUrl ?? url
-      );
-    } else {
-      return proxyUrl ?? url;
-    }
-  }, [proxyUrl, url, animated, sourceMetadata]);
-  const filename = React.useMemo(() => new URL(src).pathname.split("/").pop(), [src]);
-  const isVideo = React.useMemo(() => type === "VIDEO", [type]);
+  let src = proxyUrl ?? url;
+  if (animated) {
+    src = sourceMetadata.message.embeds?.[sourceMetadata.identifier.embedIndex ?? -1]?.video?.proxyURL ?? src;
+  }
+  const filename = React.useMemo(() => {
+    return new URL(src).pathname.split("/").pop();
+  }, [src]);
+  const isVideo = type === "VIDEO";
   const poster = React.useMemo(() => {
     const urlObj = new URL(src);
     urlObj.searchParams.set("format", "webp");
@@ -132,8 +123,8 @@ export default function ImageViewer({
     (e: MouseEvent) => {
       if (!dragging) return;
 
-      setX((prevX) => prevX + e.movementX / (zoom * window.devicePixelRatio));
-      setY((prevY) => prevY + e.movementY / (zoom * window.devicePixelRatio));
+      setX((prevX) => prevX + e.movementX / (scale * window.devicePixelRatio));
+      setY((prevY) => prevY + e.movementY / (scale * window.devicePixelRatio));
     },
     [dragging, zoom],
   );
@@ -143,27 +134,15 @@ export default function ImageViewer({
   const handleMouseUp = React.useCallback(() => {
     setDragging(false);
   }, []);
-  const handleWheel = React.useCallback(
-    (e: WheelEvent) => {
-      let deltaY = e.deltaY;
-
+  const handleWheel = React.useCallback((e: WheelEvent) => {
+    setZoom((zoom) => {
       // clamp delta, for linear scrolling (e.g. trackpads)
-      if (deltaY > 20) {
-        deltaY = 20;
-      } else if (deltaY < -20) {
-        deltaY = -20;
-      }
-
-      // * zoom here to make it more smooth when scrolling in farther
-      const newZoom = zoom + (-deltaY / 100) * zoom;
-      const newZoomClamped = Math.min(20, Math.max(calculatedScale / 10, newZoom));
-      setZoom(newZoomClamped);
-    },
-    [zoom, calculatedScale],
-  );
+      const delta = Math.min(STEP_MAX, Math.max(-STEP_MAX, -e.deltaY));
+      return Math.min(MAX_ZOOM, Math.max(minZoom, zoom + delta));
+    });
+  }, []);
 
   React.useEffect(() => {
-    // FIXME: this seems to be re-registering events every time the component updates. not great
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
@@ -180,12 +159,8 @@ export default function ImageViewer({
     };
   }, [wrapperRef.current, handleMouseDown, handleMouseMove, handleMouseUp, handleWheel]);
 
-  const transformStyle = React.useMemo(
-    () => `scale(${zoom}) translate(${x}px, ${y}px) rotate(${rotate}deg)`,
-    [zoom, x, y, rotate],
-  );
-
-  const zoomLabel = React.useMemo(() => (zoom < 0.1 ? (zoom * 100).toFixed(2) : Math.round(zoom * 100)), [zoom]);
+  const transformStyle = `scale(${scale}) translate(${x}px, ${y}px) rotate(${rotate}deg)`;
+  const zoomLabel = scale < 0.1 ? (scale * 100).toFixed(2) : Math.round(scale * 100);
 
   return (
     <div className="imageViewer">
@@ -223,7 +198,7 @@ export default function ImageViewer({
           />
         ) : (
           <Image
-            className={`imageViewer-image${zoom >= 1 ? " imageViewer-pixelate" : ""}`}
+            className={`imageViewer-image${scale >= 1 ? " imageViewer-pixelate" : ""}`}
             src={src}
             placeholder={src}
             alt={alt}
@@ -233,7 +208,7 @@ export default function ImageViewer({
           />
         )}
       </div>
-      <div className="imageViewer-toolbar">
+      <div className="imageViewer-toolbar theme-dark">
         <div className="imageViewer-toolbar-buttons" onClick={stopPropagation}>
           <HeaderBar.Icon tooltip={"Close"} tooltipPosition="top" icon={XLargeIcon} onClick={close} />
 
@@ -255,6 +230,7 @@ export default function ImageViewer({
               Clipboard.copy(src);
             }}
           />
+          {/* @ts-expect-error missing typing for window.DiscordNative */}
           {!isVideo && !animated && window.DiscordNative != null ? (
             <HeaderBar.Icon
               tooltip={"Copy Image"}
@@ -275,7 +251,7 @@ export default function ImageViewer({
             onClick={() => {
               setX(0);
               setY(0);
-              setZoom(calculatedScale);
+              setZoom(initialZoom);
             }}
           />
           <HeaderBar.Icon
@@ -283,7 +259,7 @@ export default function ImageViewer({
             tooltipPosition="top"
             icon={PlusLargeIcon}
             onClick={() => {
-              setZoom((prevZoom) => Math.min(20.0, prevZoom + 0.1));
+              setZoom((zoom) => Math.min(MAX_ZOOM, zoom + STEP_MAX));
             }}
           />
           <HeaderBar.Icon
@@ -291,7 +267,7 @@ export default function ImageViewer({
             tooltipPosition="top"
             icon={MinusIcon}
             onClick={() => {
-              setZoom((prevZoom) => Math.max(calculatedScale / 10, prevZoom - 0.1));
+              setZoom((zoom) => Math.max(minZoom, zoom - STEP_MAX));
             }}
           />
 
@@ -339,12 +315,12 @@ export default function ImageViewer({
                 setZoomEdit(Number(zoomLabel));
               }}
               onBlur={() => {
-                setZoom(zoomEdit / 100);
+                setZoom(Math.log2(zoomEdit / 100) / ZOOM_SCALE);
                 setEditingZoom(false);
               }}
-              onKeyDown={(event: KeyboardEvent) => {
+              onKeyDown={(event) => {
                 if (event.key === "Enter") {
-                  setZoom(zoomEdit / 100);
+                  setZoom(Math.log2(zoomEdit / 100) / ZOOM_SCALE);
                   setEditingZoom(false);
                 }
               }}

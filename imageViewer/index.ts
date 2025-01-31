@@ -21,10 +21,9 @@ export default definePlugin({
 
     // media proxy cannot upscale images, prevent fetching images larger than possible
     {
-      find: /\(\i\+="\?"\+\i\.stringify\(\i\)\)/,
+      find: '.startsWith("data:image"))return',
       replacement: {
-        // two replacements one patch: the sequel
-        match: /function( .)?\((.)\){(let{src:.,sourceWidth:.,sourceHeight:.,targetWidth:.,targetHeight:.)/g,
+        match: /function( \i)?\((\i)\){(let{src:\i,sourceWidth:\i,sourceHeight:\i,targetWidth:\i,targetHeight:\i)/,
         replace: (_, name, props, orig) =>
           `function${
             name ?? ""

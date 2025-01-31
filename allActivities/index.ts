@@ -27,8 +27,8 @@ export default definePlugin({
     {
       find: '"UserProfileFeaturedActivity"',
       replacement: {
-        match: /:function\(\){return \i}/,
-        replace: ":function(){return $self.activities}",
+        match: /:\(\)=>(\i)}/,
+        replace: ":()=>$self.activities}",
       },
     },
 
@@ -36,16 +36,16 @@ export default definePlugin({
     {
       find: '.STREAM_PREVIEW="StreamPreview"',
       replacement: {
-        match: /\(null==.\?void 0:.\.type\)!==.\.\i\.PLAYING&&/,
+        match: /\(null==\i\?void 0:\i\.type\)!==\i\.\i\.PLAYING&&/,
         replace: (orig: string) => orig + orig.replace("PLAYING", "COMPETING"),
       },
     },
 
     // Do not de-duplicate entries in useUserProfileActivity
     {
-      find: '("use-user-profile-activity")',
+      find: '"use-user-profile-activity"',
       replacement: {
-        match: /\(0,.\.uniqWith\)/,
+        match: /\(0,\i\.uniqWith\)/,
         replace: "((inp)=>inp)",
       },
     },

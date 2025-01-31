@@ -55,7 +55,6 @@ export default definePlugin({
   settings,
 
   patches: [
-    // Image URLs
     {
       find: "allowLinks:!!",
       replacement: {
@@ -80,7 +79,7 @@ export default definePlugin({
         match:
           /(?<=(\i===\i\.VIDEO)\?.+?(\(0,\i\.jsx\))\("div",{className:(.+?\.overlayContentHidden]:)\i\|\|\i\}\),children:\i\(\)}\):null)]/,
         replace: (_, videoCheck, createElement, className) =>
-          `,${videoCheck}&&$self.settings.store.videoMetadata?${createElement}("div",{className:${className}this.state.playing&&!this.state.hovering}),children:${createElement}($self.videoMetadata,this.props)}):null]`,
+          `,${videoCheck}&&($self.settings.store.videoMetadata)?${createElement}("div",{className:${className}this.state.playing&&!this.state.hovering}),children:${createElement}($self.videoMetadata,this.props)}):null]`,
       },
     },
 
@@ -88,13 +87,14 @@ export default definePlugin({
     {
       find: 'location:"MessageAccessories"',
       replacement: {
-        match: /=(\(0,\i\.\i\))\((\i),({shouldRedactExplicitContent:\i,shouldHideMediaOptions:\i}),(\i)\),/,
+        match: /=(\(0,\i\.\i\))\((\i),({shouldRedactExplicitContent:\i,shouldHideMediaOptions:\i}),("Media Mosaic")\),/,
         replace: (_, createCarousel, attachments, props, analytics) =>
           `=${createCarousel}($self.settings.store.inlineMosaicPlayback?${attachments}.filter(x=>x.type!="VIDEO"):${attachments},${props},${analytics}),`,
       },
     },
 
     // Enlarge Video Button
+    // This is technically a Discord feature now but it doesn't support videos (yet?)
     // TODO: Move this patch to a library
     {
       find: ".spoilerRemoveMosaicItemButton:",
@@ -108,8 +108,9 @@ export default definePlugin({
         // Add button
         {
           match:
-            /(?<=isVisualMediaType:\i,channelId:.+?}=(\i);.+?(\(0,\i\.jsx\)).+?\.forceShowHover]:\i}\),children:\[)/,
-          replace: (_, props, createElement) => `${createElement}($self.enlargeVideoButton,${props}),`,
+            /(?<=isVisualMediaType:\i,channelId:.+?}=(\i);.+?"MosaicItemHoverButtons"\);)(?=\i&&null!=\i&&(\i)\.push\((\(0,\i\.jsx\)))/,
+          replace: (_, props, buttons, createElement) =>
+            `${buttons}.push(${createElement}($self.enlargeVideoButton,${props},"mediaTweaks_enlargeVideoButton"));`,
         },
       ],
     },
@@ -127,6 +128,15 @@ export default definePlugin({
       replacement: {
         match: /if\((\i)\.sourceWidth<.\.targetWidth\){/,
         replace: (orig, props) => `$self.imagePropsProcessor(${props},$self.settings);${orig}`,
+      },
+    },
+
+    // No Sticker Autosend
+    {
+      find: ',"chat input type must be set");',
+      replacement: {
+        match: /(?<=\i\|\|\()(\(0,\i\.\i\)\(.+?\.drafts\.type\))\?/,
+        replace: (_, orig) => `(($self.settings.store.noStickerAutosend)?true:${orig})?`,
       },
     },
   ],

@@ -7,7 +7,7 @@ const GameStore = findStoreLazy("GameStore");
 const ActivityTypes = findByPropsLazy("CUSTOM_STATUS", "LISTENING");
 const PlatformTypes = findByPropsLazy("LEAGUE_OF_LEGENDS");
 
-const useUserProfileActivity = findByCodeLazy('("use-user-' + 'profile-activity")');
+const useUserProfileActivity = findByCodeLazy('"use-user-' + 'profile-activity"');
 const UserProfileActivityCard = findByCodeLazy('location:"' + 'UserProfileActivityCard",');
 
 const ActivityClasses = findByPropsLazy("applicationStreamingPreviewWrapper");
