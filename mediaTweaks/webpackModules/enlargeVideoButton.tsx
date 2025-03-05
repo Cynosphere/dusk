@@ -25,7 +25,8 @@ type MimeType = {
   compressible?: boolean;
 };
 
-const LazyMediaModal = findByCodeLazy(/let{location:\i,contextKey:/, ".MEDIA_VIEWER");
+const LazyMediaModalFind = ".MEDIA_VIEWER,source:";
+const LazyMediaModal = findByCodeLazy(LazyMediaModalFind, LazyMediaModalFind);
 const MediaModalClasses = proxyLazyWebpack(() => wreq(findModuleId(/{modal:"modal_[a-z0-9]+"}/)));
 
 const MimeTypes = proxyLazyWebpack(() =>

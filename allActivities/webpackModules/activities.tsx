@@ -1,12 +1,8 @@
 import {findByCodeLazy} from "@webpack";
-import {useMemo} from "@webpack/common";
 
 const UserProfileActivityCardWrapper = findByCodeLazy('location:"' + 'UserProfileActivityCardWrapper"');
 const UserProfileStreamActivityCard = findByCodeLazy('surface:"' + 'user-profile-stream-activity-card",');
 const useUserProfileActivity = findByCodeLazy('"use-user-' + 'profile-activity"');
-const useUserActivityFeedRecent = findByCodeLazy('"application_id"in', ".extra.application_id", ".GAME_PROFILE_FEED");
-const ActivityFeed48h = findByCodeLazy(".Millis.HOUR<48");
-const UserProfileRecentActivityCard = findByCodeLazy("{recentActivityEnabled:", ".bot?(0,");
 
 type UserPopoutActivitiesProps = {
   user: any;
@@ -25,16 +21,8 @@ export default function UserPopoutActivities({
   className,
   onClose,
 }: UserPopoutActivitiesProps) {
-  const {live, recent, stream} = useUserProfileActivity(user.id);
+  const {live, stream} = useUserProfileActivity(user.id);
   const [firstActivity] = live;
-
-  const isCurrentUser = user.id === currentUser.id;
-
-  const recentFeedEntry = useUserActivityFeedRecent(user.id, LOCATION);
-  const feedEntry = useMemo(
-    () => (isCurrentUser ? recent.find(ActivityFeed48h) : recentFeedEntry),
-    [isCurrentUser, recent, recentFeedEntry],
-  );
 
   const activities = [...live];
   activities.shift();
@@ -56,16 +44,6 @@ export default function UserPopoutActivities({
         user={user}
         currentUser={currentUser}
         activity={firstActivity}
-        profileGuildId={profileGuildId}
-        className={className}
-        onClose={onClose}
-      />
-    ) : feedEntry != null ? (
-      <UserProfileRecentActivityCard
-        location={LOCATION}
-        user={user}
-        currentUser={currentUser}
-        entry={feedEntry}
         profileGuildId={profileGuildId}
         className={className}
         onClose={onClose}
